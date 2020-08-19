@@ -1,0 +1,2 @@
+Scraps a Wikia (now Fandom) site into an XML file using the Special:Export
+feature on every page. The full list of pages can be found on Special:AllPages.
