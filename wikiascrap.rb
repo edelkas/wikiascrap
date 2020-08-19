@@ -5,6 +5,7 @@ require 'nokogiri'
 
 NAME = 'n'
 SITE = "https://#{NAME}.fandom.com"
+FULL = false # Include all revisions
 
 def parse(url)
   Nokogiri::HTML(Net::HTTP.get(URI.parse(url)))
@@ -22,5 +23,13 @@ pages = doc.at('table[class="allpageslist"]').children.map{ |c| SITE + c.at('a')
 }.flatten.join("\n")
 
 # Export all pages to XML using the built-in feature
-File.write("#{NAME}.xml", Net::HTTP.post_form(URI.parse("#{SITE}/wiki/Special:Export?action=submit"), pages: pages ).body)
+# Note: To retrieve all pages, remove the "curonly".
+opt = {pages: pages}
+if !FULL then opt[:curonly] = 1 end
+ret = Net::HTTP.post_form(
+  URI.parse("#{SITE}/wiki/Special:Export?action=submit"),
+  **opt
+).body
+
+File.write("#{NAME}.xml", ret)
 puts "Done"
