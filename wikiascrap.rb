@@ -23,7 +23,6 @@ pages = doc.at('table[class="allpageslist"]').children.map{ |c| SITE + c.at('a')
 }.flatten.join("\n")
 
 # Export all pages to XML using the built-in feature
-# Note: To retrieve all pages, remove the "curonly".
 opt = {pages: pages}
 if !FULL then opt[:curonly] = 1 end
 ret = Net::HTTP.post_form(
