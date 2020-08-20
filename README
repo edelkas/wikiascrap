@@ -1,2 +1,16 @@
 Scraps a Wikia (now Fandom) site into an XML file using the Special:Export
 feature on every page. The full list of pages can be found on Special:AllPages.
+
+It's also optionally able to download all files, which will be exported to
+a matching folder.
+
+Note: Due to recent Wikia changes, downloading files requires authentication,
+      since Wikia redirects anonymous users from "File:" pages to the first
+      normal page the file is used. Therefore, to download files, you need to
+      fill in the TOKEN variable at the start of the code with a valid token.
+
+      This token is the value of the cookie named "access_token" from the
+      domain "fandom.com". To obtain it, simply authenticate in a
+      Fandom account manually, and then use the cookie browser of your
+      browser to find it. On some browsers, like Firefox, you may need
+      to open developer tools, like the Storage Inspector.

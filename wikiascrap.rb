@@ -6,7 +6,7 @@ require 'nokogiri'
 NAME  = 'nplusplus'
 SITE  = "https://#{NAME}.fandom.com"
 FULL  = false # Include all revisions
-FILES = true
+FILES = false # Also download files, requires token (read README)
 TOKEN = nil
 
 def parse(url)
@@ -17,6 +17,7 @@ def retrieve_file(foldername, filename)
   # We need to be authenticated to be able to retrieve files from Wikia.
   # To do this, authenticate on your browser, then browse the generated
   # cookies and copy the "access_token" one to the TOKEN variable.
+  return 0 if File.file?(foldername + "/" + filename)
 
   # Retrieve page
   uri = URI.parse(SITE)
@@ -63,16 +64,26 @@ end
 def export(content, files = false)
   t = Time.now
   if files
+    error = false
     foldername = NAME + (FULL ? "_full" : "") + "_files"
     Dir.mkdir(foldername) if !Dir.exist?(foldername)
     content.each_with_index{ |f, i|
       print("Downloading file #{i} / #{content.size}...".ljust(80, " ") + "\r")
       ret = retrieve_file(foldername, f)
       if ret != 0
-        puts("Error downloading file #{i}, possibly due to authentication (README).")
+        puts("Error downloading file #{i}.")
+        error = true
       end
     }
     puts "Exported to folder #{foldername} in #{"%.3f" % (Time.now - t)} seconds."
+    if error
+      puts("Looks like some files failed to download. Possible reasons:")
+      puts("  * Authentication failure (read README).")
+      puts("  * Timeout, e.g. if one file was too big.")
+      puts("  * Internet connection issues.")
+      puts("Note: You can run the scraper again to download the missing files,")
+      puts("      the already downloaded ones will be skipped.")
+    end
   else
     opt = {pages: content}
     if !FULL then opt[:curonly] = 1 end
