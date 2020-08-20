@@ -1,1 +1,6 @@
 * Also scrap images, need to identify them in the XML code and then individually download them.
+* In fact, scrap other categories, like "categories", "users", "talks", etc.
+
+* Note: "File:" pages, which is where images are located in a Wikia, now redirect to the first
+  page the file is used for anonymous users. This means that in order to scrape them, we first
+  need to authenticate in the website.
