@@ -7,7 +7,7 @@ NAME  = 'nplusplus'
 SITE  = "https://#{NAME}.fandom.com"
 FULL  = false # Include all revisions
 FILES = true
-TOKEN = "OTE0ZGI5OWMtYThjMC00NDVjLTg2N2ItNGU0N2FiYmZhZjBj"
+TOKEN = nil
 
 def parse(url)
   Nokogiri::HTML(Net::HTTP.get(URI.parse(url)))
