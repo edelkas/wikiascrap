@@ -3,9 +3,9 @@ require 'net/http'
 # Gems
 require 'nokogiri'
 
-NAME  = 'nplusplus'
+NAME  = 'n'
 SITE  = "https://#{NAME}.fandom.com"
-FULL  = false # Include all revisions
+FULL  = true # Include all revisions and all namespaces
 FILES = false # Also download files, requires token (read README)
 TOKEN = nil
 
@@ -39,24 +39,58 @@ rescue
   return 1
 end
 
+# Retrieve full list of articles of the Wikia. These are sorted in 3 depths:
+# 1) Namespace (e.g. 0 for main, 1 for talk, 2 for user, etc).
+# 2) List (of pages), containing as many as needed.
+# 3) Page (of articles), containing about 350 articles.
+# Note: If the Wiki has less than 350 articles, the list is not used.
+
 def parse_page(doc)
-  doc.at('table[class="mw-allpages-table-chunk"]').children.map{ |row|
-    row.search('a').map{ |p|
-      URI.unescape(p['href'].gsub('/wiki/', ''))
-    }
-  }.flatten
+  if !doc.at('table[class="mw-allpages-table-chunk"]').nil?
+    doc.at('table[class="mw-allpages-table-chunk"]').children.map{ |row|
+      row.search('a').map{ |p|
+        URI.unescape(p['href'].gsub('/wiki/', ''))
+      }
+    }.flatten
+  else
+    []
+  end
 end
 
-# Retrieves full list of pages or files of the Wikia
-def list(files = false)
-  doc = parse("#{SITE}/wiki/Special:AllPages#{files ? "?namespace=6" : ""}")
+def parse_namespace(ns)
+  doc = parse("#{SITE}/wiki/Special:AllPages?namespace=#{ns}")
+  # There is a list.
   if !doc.at('table[class="allpageslist"]').nil?
     doc.at('table[class="allpageslist"]').children.map{ |c| SITE + c.at('a')['href'] }.map{ |page|
       page_doc = parse(page)
-      parse_page(page)
-    }.flatten  
+      parse_page(page_doc)
+    }.flatten
+  # There is no list.
   else
     parse_page(doc)
+  end  
+end
+
+def list(files = false)
+  doc = parse("#{SITE}/wiki/Special:AllPages")
+  namespaces = doc.at('select[id="namespace"]').search('option').map{ |ns|
+    [ns.content, ns['value']] 
+  }.to_h
+  if files
+    if !namespaces.key?("File")
+      []
+    else
+      parse_namespace(namespaces["File"])
+    end
+  else
+    if FULL
+      namespaces.each_with_index.map{ |ns, i|
+        print("Parsing namespace #{i} / #{namespaces.size}...".ljust(80, " ") + "\r")
+        parse_namespace(ns[1])
+      }.flatten
+    else
+      parse_namespace(0)
+    end
   end
 end
 
@@ -65,7 +99,7 @@ def export(content, files = false)
   t = Time.now
   if files
     error = false
-    foldername = NAME + (FULL ? "_full" : "") + "_files"
+    foldername = NAME + "_files"
     Dir.mkdir(foldername) if !Dir.exist?(foldername)
     content.each_with_index{ |f, i|
       print("Downloading file #{i} / #{content.size}...".ljust(80, " ") + "\r")
@@ -91,7 +125,7 @@ def export(content, files = false)
       URI.parse("#{SITE}/wiki/Special:Export?action=submit"),
       **opt
     ).body
-    filename = NAME + (FULL ? "_full" : "") + ".xml"
+    filename = NAME + "_wikia" + (FULL ? "_full" : "") + ".xml"
     File.write(filename, ret)
     puts "Exported to #{filename} in #{"%.3f" % (Time.now - t)} seconds."
   end
@@ -102,21 +136,24 @@ def main
   puts "* Including revisions: #{FULL ? "Yes" : "No"}"
   puts "* Including files:     #{FILES ? "Yes" : "No"}"
   t = Time.now
-  puts "Retrieving full list of pages from #{NAME} Wikia..."
+  puts "Retrieving full list of pages from #{NAME} wikia..."
   pages = list(false)
-  puts "Exporting #{pages.size} pages from #{NAME} Wikia..."
+  puts "Retrieved in #{"%.3f" % (Time.now - t)} seconds."
+  puts "Exporting #{pages.size} pages from #{NAME} wikia..."
   export(pages.join("\n"), false)
   if FILES
     if TOKEN.nil?
       puts "Files couldn't be exported, you need to be authenticated, read README."
     else
-      puts "Retrieving full list of files from #{NAME} Wikia..."
+      s = Time.now
+      puts "Retrieving full list of files from #{NAME} wikia..."
       files = list(true)
-      puts "Exporting #{files.size} files from #{NAME} Wikia..."
+      puts "Retrieved in #{"%.3f" % (Time.now - s)} seconds."
+      puts "Exporting #{files.size} files from #{NAME} wikia..."
       export(files, true)
     end
-  puts "Finished in #{"%.3f" % (Time.now - t)} seconds."
   end
+  puts "Finished in #{"%.3f" % (Time.now - t)} seconds."
 end
 
 main
