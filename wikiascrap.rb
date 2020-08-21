@@ -8,7 +8,7 @@ SITE  = "https://#{NAME}.fandom.com"
 PAGES = false # Download articles
 FULL  = false # Include all revisions and all namespaces
 FILES = true  # Download files, requires token (read README)
-TOKEN = nil
+TOKEN = "OTE0ZGI5OWMtYThjMC00NDVjLTg2N2ItNGU0N2FiYmZhZjBj"
 
 def parse(url)
   Nokogiri::HTML(Net::HTTP.get(URI.parse(url)))
@@ -18,7 +18,8 @@ def retrieve_file(foldername, filename)
   # We need to be authenticated to be able to retrieve files from Wikia.
   # To do this, authenticate on your browser, then browse the generated
   # cookies and copy the "access_token" one to the TOKEN variable.
-  return 0 if File.file?(foldername + "/" + filename)
+  aux_name = filename[0..4].downcase == "file:" ? filename[5..-1] : filename
+  return 0 if File.file?(foldername + "/" + aux_name)
 
   # Retrieve page
   uri = URI.parse(SITE)
@@ -33,10 +34,10 @@ def retrieve_file(foldername, filename)
   doc = Nokogiri::HTML(res.body)
   url = doc.at('div[class="fullMedia"]').at('a')['href'] + "&format=original"
   file = Net::HTTP.get(URI.parse(url))
-  if filename[0..4].downcase == "file:" then filename = filename[5..-1] end
-  File.binwrite(foldername + "/" + filename, file)
+  File.binwrite(foldername + "/" + aux_name, file)
   return 0
 rescue
+  puts filename
   return 1
 end
 
@@ -100,7 +101,7 @@ def export(content, files = false)
   t = Time.now
   if files
     error = false
-    foldername = NAME + "_files"
+    foldername = NAME + "_wikia_files"
     Dir.mkdir(foldername) if !Dir.exist?(foldername)
     content.each_with_index{ |f, i|
       print("Downloading file #{i} / #{content.size}...".ljust(80, " ") + "\r")
