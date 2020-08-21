@@ -5,8 +5,9 @@ require 'nokogiri'
 
 NAME  = 'n'
 SITE  = "https://#{NAME}.fandom.com"
-FULL  = true # Include all revisions and all namespaces
-FILES = false # Also download files, requires token (read README)
+PAGES = false # Download articles
+FULL  = false # Include all revisions and all namespaces
+FILES = true  # Download files, requires token (read README)
 TOKEN = nil
 
 def parse(url)
@@ -133,14 +134,17 @@ end
 
 def main
   puts "Wikia scrapper initialized."
+  puts "* Including articles:  #{PAGES ? "Yes" : "No"}"
   puts "* Including revisions: #{FULL ? "Yes" : "No"}"
   puts "* Including files:     #{FILES ? "Yes" : "No"}"
   t = Time.now
-  puts "Retrieving full list of pages from #{NAME} wikia..."
-  pages = list(false)
-  puts "Retrieved in #{"%.3f" % (Time.now - t)} seconds."
-  puts "Exporting #{pages.size} pages from #{NAME} wikia..."
-  export(pages.join("\n"), false)
+  if PAGES
+    puts "Retrieving full list of pages from #{NAME} wikia..."
+    pages = list(false)
+    puts "Retrieved in #{"%.3f" % (Time.now - t)} seconds."
+    puts "Exporting #{pages.size} pages from #{NAME} wikia..."
+    export(pages.join("\n"), false)
+  end
   if FILES
     if TOKEN.nil?
       puts "Files couldn't be exported, you need to be authenticated, read README."
