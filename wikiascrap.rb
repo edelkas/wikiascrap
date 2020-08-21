@@ -5,10 +5,10 @@ require 'nokogiri'
 
 NAME  = 'n'
 SITE  = "https://#{NAME}.fandom.com"
-PAGES = false # Download articles
+PAGES = true # Download articles
 FULL  = false # Include all revisions and all namespaces
-FILES = true  # Download files, requires token (read README)
-TOKEN = "OTE0ZGI5OWMtYThjMC00NDVjLTg2N2ItNGU0N2FiYmZhZjBj"
+FILES = false  # Download files, requires token (read README)
+TOKEN = nil
 
 def parse(url)
   Nokogiri::HTML(Net::HTTP.get(URI.parse(url)))
