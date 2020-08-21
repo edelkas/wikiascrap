@@ -3,16 +3,16 @@ feature on every page. The full list of pages can be found on Special:AllPages.
 
 OPTIONS:
 
-* You can enable "FULL" mode, this will download all revisions (not just the
-  current version of each article), and additionally, it will fetch pages
-  from all namespaces other than Main: Talk pages, User pages, etc.
-
-* You can enable the download of all files, which will be exported to
-  a matching folder.
-
 Options can be configured by editing the variables at the start of the code.
 
-NOTA: Due to recent Wikia changes, downloading files requires authentication,
+* PAGES: This will enable or disable the download of articles.
+* FULL: This will enable or disable the download of all revisions (not just
+  the current version of each article), and additionally, it will fetch pages
+  from all namespaces other than Main: Talk pages, User pages, etc.
+* FILES: This will enable or disable the download of all files, which will
+  be exported to a matching folder.
+
+NOTE: Due to recent Wikia changes, downloading files requires authentication,
       since Wikia redirects anonymous users from "File:" pages to the first
       normal page the file is used. Therefore, to download files, you need to
       fill in the TOKEN variable at the start of the code with a valid token.
